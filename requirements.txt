@@ -1,0 +1,4 @@
+w1thermsensor
+smbus2
+minimalmodbus
+serial
