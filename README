@@ -1,0 +1,5 @@
+# Compiling flow_s.c
+
+```c
+gcc -o flow_s flow_s.c -l wiringPi
+```
