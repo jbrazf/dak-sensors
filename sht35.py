@@ -29,6 +29,20 @@ def read_sht35():
 
     return cTemp, humidity
 
+def send_read_command(bus: smbus2.SMBus, address: int = 0x45):
+    MEASURE_CMD = [0x2C, 0x06]
+    bus.write_i2c_block_data(address, MEASURE_CMD[0], MEASURE_CMD[1:])
+
+def read_values(bus: smbus2.SMBus, address: int = 0x45):
+    data = bus.read_i2c_block_data(address, 0x00, 6)
+
+    # Convert the data
+    temp = data[0] * 256 + data[1]
+    cTemp = -45 + (175 * temp / 65535.0)
+    humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
+    
+    return cTemp, humidity
+
 # Main function to output the temperature and humidity
 def print_sht35(temperature, humidity):
     print(f"Temperature: {temperature:.2f} C")
