@@ -9,8 +9,8 @@ import ds18b20
 import argparse
 import pressure
 
+import RPi.GPIO as GPIO
 from termcolor import cprint
-from gpiozero import DigitalInputDevice
 
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
@@ -41,17 +41,19 @@ if __name__ == "__main__":
     temp_sensors  = ds18b20.init_sensors()
     temp_master   = open('/sys/bus/w1/devices/w1_bus_master1/therm_bulk_read', 'w')
     energy_sensor = pzem.init_sensor()
-    flow_sensor   = DigitalInputDevice(FLOW_SENSOR_PIN, pull_up=True)
-    pulse_count   = 0
     
-    # configuration
-    pressure.configure_ads1100(pressure_bus, gain=8)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(FLOW_SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    pulse_count = 0
+    flow_rate = 0
     
-    def pulse_callback():
+    def count_pulse(channel):
         global pulse_count
         pulse_count += 1
     
-    flow_sensor.when_activated = pulse_callback
+    # configuration
+    pressure.configure_ads1100(pressure_bus, gain=8)
+    GPIO.add_event_detect(FLOW_SENSOR_PIN, GPIO.RISING, callback=count_pulse)
     
     # connection to rabbitmq
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -63,7 +65,10 @@ if __name__ == "__main__":
     while True:
         liters_per_pulse = 1.0 / (6.539 * 60)
         water_data = pulse_count * liters_per_pulse
-        pulse_count = 0 
+        flow_rate = (pulse_count / 1) / 6.539
+        
+        cprint(f'pulse count - {pulse_count}', 'red', 'on_black')
+        pulse_count = 0
         
         now = time.time_ns()
         t0 = time.time()
@@ -82,7 +87,7 @@ if __name__ == "__main__":
         temp_data     = ds18b20.read_bulk_temp(temp_sensors)
         
         # data serialization
-        data = struct.pack('l12f', now, pressure_data, *ambient_data, *energy_data, *temp_data, water_data)
+        data = struct.pack('l13f', now, pressure_data, *ambient_data, *energy_data, *temp_data, water_data, flow_rate)
         
         if LOG: print("\033c")
         
@@ -90,7 +95,8 @@ if __name__ == "__main__":
         if LOG: cprint(f"    -> ambient {ambient_data}", 'blue')
         if LOG: cprint(f"    -> pzem {energy_data}", 'blue')
         if LOG: cprint(f"    -> temp {temp_data}", 'blue')
-        if LOG: cprint(f"    -> water {water_data}", 'blue')
+        if LOG: cprint(f"    -> water used {water_data}", 'blue')
+        if LOG: cprint(f"    -> flow rate {flow_rate}", 'blue')
         # write to message queue
         channel.basic_publish(exchange='', routing_key='python_sensors', body=data)
 
