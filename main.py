@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='dak-sensors',
                                      description='Read all configured sensors in a timely manner')
     parser.add_argument('-v', '--verbose', action='store_true', help='if the program should print the values its reading')
-    parser.add_argument('-w' '--washer', action='store_true', help='If this program is running for a dryer')
+    parser.add_argument('-w', '--washer', action='store_true', help='If this program is running for a dryer')
     args = parser.parse_args()
     
     LOG = args.verbose
