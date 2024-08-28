@@ -115,7 +115,7 @@ if __name__ == "__main__":
         
         
         while time.time_ns() < now + 1_000_000_000:
-            time.sleep(0.01)
+            time.sleep(0.1)
             
         if LOG: cprint(f"[Waited]: {(time.time_ns() - after_writing)/1_000_000_000}", 'yellow')
         if LOG: cprint(f"[Total time]: {(now - old_time)/1_000_000_000}", 'yellow')
