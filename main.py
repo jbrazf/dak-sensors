@@ -67,6 +67,7 @@ if __name__ == "__main__":
     old_time = time.time_ns()
     
     while True:
+        end = time.time_ns() + 1_000_000_000
         liters_per_pulse = 1.0 / (6.539 * 60)
         water_data = pulse_count * liters_per_pulse
         flow_rate = (pulse_count / 1) / 6.539
@@ -75,17 +76,12 @@ if __name__ == "__main__":
         pulse_count = 0
         
         now = time.time_ns()
-        t0 = time.time()
-        # read commands/triggers
-        
+        # read commands/triggers        
         if WASHER: ds18b20.send_bulk_read_trigger(temp_master, LOG)
         
         sht35.send_read_command(ambient_bus)
-        t1 = time.time()
-        
-        if LOG: cprint(f"{t1-t0}", 'red')
+
         # read final values 
-        
         ambient_data  = sht35.read_values(ambient_bus)
         energy_data   = pzem.read_registers(energy_sensor)
         
@@ -113,9 +109,7 @@ if __name__ == "__main__":
         after_writing = time.time_ns()
         if LOG: cprint(f"[Ocupancy Time]: {(after_writing - now)/1_000_000_000}", 'yellow')
         
-        
-        while time.time_ns() < now + 1_000_000_000:
-            time.sleep(0.1)
+        time.sleep((end - time.time_ns()) / 1_000_000_000)
             
         if LOG: cprint(f"[Waited]: {(time.time_ns() - after_writing)/1_000_000_000}", 'yellow')
         if LOG: cprint(f"[Total time]: {(now - old_time)/1_000_000_000}", 'yellow')
