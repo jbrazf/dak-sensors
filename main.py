@@ -111,7 +111,8 @@ if __name__ == "__main__":
         after_writing = time.time_ns()
         if LOG: cprint(f"[Ocupancy Time]: {(after_writing - now)/1_000_000_000}", 'yellow')
         
-        time.sleep((end - time.time_ns()) / 1_000_000_000)
+        sleep_time = (end - time.time_ns()) / 1_000_000_000
+        if sleep_time > 0: time.sleep(sleep_time)
             
         if LOG: cprint(f"[Waited]: {(time.time_ns() - after_writing)/1_000_000_000}", 'yellow')
         if LOG: cprint(f"[Total time]: {(now - old_time)/1_000_000_000}", 'yellow')
