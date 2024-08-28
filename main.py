@@ -35,11 +35,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='dak-sensors',
                                      description='Read all configured sensors in a timely manner')
     parser.add_argument('-v', '--verbose', action='store_true', help='if the program should print the values its reading')
-    parser.add_argument('-w', '--washer', action='store_true', help='If this program is running for a dryer')
     args = parser.parse_args()
     
     LOG = args.verbose
-    WASHER = args.washer
+    try:
+        WASHER = open('/etc/device_type.txt').read().strip() == "washer"
+    except FileNotFoundError:
+        WASHER = False
     
     # initialization
     if WASHER:
