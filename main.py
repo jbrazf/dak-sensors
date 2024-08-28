@@ -55,7 +55,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     LOG = args.verbose
-    WASHER = not args.dryer
+    WASHER = not args.washer
     
     # initialization
     ambient_bus = smbus2.SMBus(AMBIENT_I2C_DEV)
